@@ -1,17 +1,17 @@
 from pdb_model import PDBFile
 import pdb_to_stl
-import stl_gen
+
 
 def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, resolution=10):
-    '''Creates an STL file from the given PDB file data.
+    """Creates an STL file from the given PDB file data.
        STL file saved at the location specified by output_file
-       The model_type can be 'space', 'ballstick' or 'stick' to produce a 
-       space-filling model, a ball-and-stick model, or a model that 
+       The model_type can be 'space', 'ballstick' or 'stick' to produce a
+       space-filling model, a ball-and-stick model, or a model that
        shows bonds but does not include atom balls.
        Boolean values for sidechains, hydrogens, and hets specify whether
-       each of those items is included in the model.  
+       each of those items is included in the model.
        Note that currently, sidechain hydrogens are always left out of
-       ball-and-stick and stick only models.'''
+       ball-and-stick and stick only models."""
     
     # Initialize
     pdb_file = PDBFile()
@@ -38,7 +38,6 @@ def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, re
 
 
 if __name__ == '__main__':
-    pdb_input = list()
-    with open('Files/6j5i.pdb') as pdb_file:
-        pdb_input = pdb_file.readlines()
-    make_stl(pdb_input, 'Files/output.stl', 'space', True, False, False, resolution=10)
+    with open('Files/6j5i.pdb') as opened_file:
+        pdb_input_lines = opened_file.readlines()
+        make_stl(pdb_input_lines, 'Files/output.stl', 'space', True, False, False, resolution=10)

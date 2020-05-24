@@ -22,8 +22,9 @@ sizes = {
 	'BR': 1.82,
 }
 
+
 def get_space_size(name):
-	'''Gets atom radius for space-filling model, by element name'''
+	"""Gets atom radius for space-filling model, by element name"""
 	if name not in sizes:
 		print('WARNING: Did not know atomic radius of {}'.format(name))
 		return 2
