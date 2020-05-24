@@ -13,17 +13,17 @@ class Model3D:
         self.cylinders = list()
         self.data = None
 
-    def add_sphere(self, r, pos, granularity, tags):
+    def add_sphere(self, r, pos, resolution, tags):
         """Adds a sphere to the model with the given radius and position (x,y,z) coordinates.
            Granularity determines the number of faces on each ring around the sphere.
            Tags are used for filtering items in model creation."""
-        self.spheres.append(Sphere(r, pos, granularity, tags))
+        self.spheres.append(Sphere(r, pos, resolution, tags))
 
-    def add_cylinder(self, r, start, end, granularity, tags):
+    def add_cylinder(self, r, start, end, resolution, tags):
         """Adds a cylinder to the model with the given radius and start, end (x,y,z) coordinates.
            Granularity determines the number of faces on the cylinder.
            Tags are used for filtering items in model creation."""
-        self.cylinders.append(Cylinder(r, start, end, granularity, tags))
+        self.cylinders.append(Cylinder(r, start, end, resolution, tags))
 
     def center(self):
         """Centers the model around (0, 0, 0)"""
@@ -110,16 +110,16 @@ def _gen_cylinder(cylinder):
 
     # Points on Circle
     count = 0
-    circle_pts = np.zeros((cylinder.granularity, 3))
-    for theta in np.linspace(0, 2*math.pi*(1 - 1/cylinder.granularity), cylinder.granularity):
+    circle_pts = np.zeros((cylinder.resolution, 3))
+    for theta in np.linspace(0, 2*math.pi*(1 - 1/cylinder.resolution), cylinder.resolution):
         circle_pts[count, :] = radius*np.cos(theta) + np.cross(axis, radius)*np.sin(theta) + \
                               axis*np.dot(axis, radius)*(1 - np.cos(theta))
         count += 1
 
     # Cylinder Sides
     count = 0
-    coords = np.zeros((cylinder.granularity*2, 3, 3))
-    for i in range(0, cylinder.granularity - 1):
+    coords = np.zeros((cylinder.resolution*2, 3, 3))
+    for i in range(0, cylinder.resolution - 1):
         coords[count, :] = np.array([circle_pts[i, :] + cylinder.end,
                                      circle_pts[i, :] + cylinder.start,
                                      circle_pts[i+1, :] + cylinder.start])
@@ -127,10 +127,10 @@ def _gen_cylinder(cylinder):
                                       circle_pts[i+1, :] + cylinder.start,
                                       circle_pts[i+1, :] + cylinder.end])
         count += 2
-    coords[count, :] = np.array([circle_pts[cylinder.granularity-1, :] + cylinder.end,
-                                 circle_pts[cylinder.granularity-1, :] + cylinder.start,
+    coords[count, :] = np.array([circle_pts[cylinder.resolution-1, :] + cylinder.end,
+                                 circle_pts[cylinder.resolution-1, :] + cylinder.start,
                                  circle_pts[0, :] + cylinder.start])
-    coords[count+1, :] = np.array([circle_pts[cylinder.granularity-1, :] + cylinder.end,
+    coords[count+1, :] = np.array([circle_pts[cylinder.resolution-1, :] + cylinder.end,
                                   circle_pts[0, :] + cylinder.start,
                                   circle_pts[0, :] + cylinder.end])
     count += 2
@@ -145,9 +145,9 @@ def _gen_cylinder(cylinder):
 def _gen_sphere(sphere):
     """Generates a sphere with the given radius and position (x,y,z) coordinates.
        Granularity determines the number of faces on each ring around the sphere."""
-    coords = np.zeros((sphere.granularity*2 + 2*sphere.granularity*(sphere.granularity-3), 3, 3))
-    thetas = np.linspace(0, math.pi, sphere.granularity)
-    phis = np.linspace(0, 2*math.pi, sphere.granularity+1)
+    coords = np.zeros((sphere.resolution*2 + 2*sphere.resolution*(sphere.resolution-3), 3, 3))
+    thetas = np.linspace(0, math.pi, sphere.resolution)
+    phis = np.linspace(0, 2*math.pi, sphere.resolution+1)
     count = 0
 
     # Bottom Triangles
@@ -195,19 +195,19 @@ def _gen_sphere(sphere):
 class Sphere:
     """Represents a sphere"""
 
-    def __init__(self, radius, pos, granularity, tags):
+    def __init__(self, radius, pos, resolution, tags):
         self.radius = radius
         self.pos = pos
-        self.granularity = granularity
+        self.resolution = resolution
         self.tags = tags
 
 
 class Cylinder:
     """Represents a cylinder"""
 
-    def __init__(self, radius, start, end, granularity, tags):
+    def __init__(self, radius, start, end, resolution, tags):
         self.radius = radius
         self.start = start
         self.end = end
-        self.granularity = granularity
+        self.resolution = resolution
         self.tags = tags

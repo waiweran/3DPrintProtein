@@ -7,6 +7,7 @@ class PDBFile:
         self.molecule_source = ''
         self.alpha_helices = list()
         self.beta_sheets = list()
+        self.het_types = dict()
 
     def load_pdb(self, pdb_data):
         """Loads data from a PDB file, passed in as a list of lines"""
@@ -19,28 +20,48 @@ class PDBFile:
     def _process_line(self, line):
         """Processes one line of a PDB file"""
         key = line[0:6]
+
         # Title Section
         if key == 'COMPND':
             pass  # Contains molecule name
         elif key == 'SOURCE':
             pass  # Contains organism
+
+        # Heterogen Section
+        elif key == 'HET   ':
+            het_id = line[7:10].strip()
+            if het_id not in self.het_types:
+                self.het_types[het_id] = het_id
+        elif key == 'HETNAM':
+            if line[8:10] == '  ':  # Get the first 15 characters of the het name
+                self.het_types[line[11:14].strip()] = line[15:30].strip().title()
+
         # Secondary Structure Section
         elif key == 'HELIX ':
             self.alpha_helices.append(Helix(line))
         elif key == 'SHEET ':
             self.beta_sheets.append(Sheet(line))
+
         # Connectivity Annotation Section
         elif key == 'SSBOND':
             pass  # Disulfides re-categorized in processing of hets connections
         elif key == 'LINK  ':
             pass  # Bonds indicated here re-categorized in processing of hets connections
+
         # Coordinates Section
         elif key == 'ATOM  ':
             self.models[-1].add_atom(line)
         elif key == 'HETATM':
+            het_id = line[17:20].strip()
+            if het_id not in self.het_types:
+                if het_id == 'HOH':
+                    self.het_types[het_id] = 'Water'
+                else:
+                    self.het_types[het_id] = het_id
             self.models[-1].add_het(line)
         elif key == 'MODEL ':
             self._start_model(line)
+
         # Connectivity Section
         elif key == 'CONECT':
             self.models[-1].add_extra_connection(line)
@@ -149,30 +170,31 @@ class PDBModel:
             if atm.serial_number == serial_number:
                 atom = atm
                 break
-        if line[11:16].strip() != '':
-            serial_number_2 = int(line[11:16])
-            for atom2 in self.all_atoms:
-                if atom2.serial_number == serial_number_2:
-                    connections.append((atom, atom2))
-                    break
-        if line[16:21].strip() != '':
-            serial_number_2 = int(line[16:21])
-            for atom2 in self.all_atoms:
-                if atom2.serial_number == serial_number_2:
-                    connections.append((atom, atom2))
-                    break
-        if line[21:26].strip() != '':
-            serial_number_2 = int(line[21:26])
-            for atom2 in self.all_atoms:
-                if atom2.serial_number == serial_number_2:
-                    connections.append((atom, atom2))
-                    break
-        if line[27:31].strip() != '':
-            serial_number_2 = int(line[26:31])
-            for atom2 in self.all_atoms:
-                if atom2.serial_number == serial_number_2:
-                    connections.append((atom, atom2))
-                    break
+        if atom is not None:
+            if line[11:16].strip() != '':
+                serial_number_2 = int(line[11:16])
+                for atom2 in self.all_atoms:
+                    if atom2.serial_number == serial_number_2:
+                        connections.append((atom, atom2))
+                        break
+            if line[16:21].strip() != '':
+                serial_number_2 = int(line[16:21])
+                for atom2 in self.all_atoms:
+                    if atom2.serial_number == serial_number_2:
+                        connections.append((atom, atom2))
+                        break
+            if line[21:26].strip() != '':
+                serial_number_2 = int(line[21:26])
+                for atom2 in self.all_atoms:
+                    if atom2.serial_number == serial_number_2:
+                        connections.append((atom, atom2))
+                        break
+            if line[27:31].strip() != '':
+                serial_number_2 = int(line[26:31])
+                for atom2 in self.all_atoms:
+                    if atom2.serial_number == serial_number_2:
+                        connections.append((atom, atom2))
+                        break
         for atom, atom2 in connections:
             if atom in self.mainchain_atoms:
                 if atom2 in self.mainchain_atoms and not (atom2, atom) in self.mainchain_connections:

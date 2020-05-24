@@ -2,7 +2,7 @@ from pdb_model import PDBFile
 import pdb_to_stl
 
 
-def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, resolution=10):
+def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, resolution=pdb_to_stl.DEFAULT_RESOLUTION):
     """Creates an STL file from the given PDB file data.
        STL file saved at the location specified by output_file
        The model_type can be 'space', 'ballstick' or 'stick' to produce a
@@ -40,4 +40,4 @@ def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, re
 if __name__ == '__main__':
     with open('Files/6j5i.pdb') as opened_file:
         pdb_input_lines = opened_file.readlines()
-        make_stl(pdb_input_lines, 'Files/output.stl', 'space', True, False, False, resolution=10)
+        make_stl(pdb_input_lines, 'Files/output.stl', 'space', True, False, False, resolution=15)
