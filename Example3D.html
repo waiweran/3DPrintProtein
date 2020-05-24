@@ -1,0 +1,121 @@
+<html>
+<header>
+
+</header>
+<body>
+  <canvas id="c"></canvas>
+  <script src="https://threejsfundamentals.org/threejs/resources/threejs/r105/three.min.js"></script>
+  <form>
+    <input type="checkbox" id="mainchain_atoms" onchange="main()">mainchain_atoms
+    <input type="checkbox" id="sidechain_atoms" onchange="main()">sidechain_atoms
+    <input type="checkbox" id="hets_atoms" onchange="main()">hets_atoms
+    <input type="checkbox" id="mainchain_hydrogens" onchange="main()">mainchain_hydrogens
+    <input type="checkbox" id="sidechain_hydrogens" onchange="main()">sidechain_hydrogens
+  </form>
+</body>
+<script>
+
+'use strict';
+
+/* global THREE */
+
+function main() {
+  const canvas = document.querySelector('#c');
+  const renderer = new THREE.WebGLRenderer({canvas});
+
+  const fov = 40;
+  const aspect = 2;  // the canvas default
+  const near = 0.1;
+  const far = 1000;
+  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+  camera.position.set(0, 150, 0);
+  camera.up.set(0, 0, 1);
+  camera.lookAt(0, 0, 0);
+
+  const scene = new THREE.Scene();
+
+  {
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(-10, 150, 200);
+    scene.add(light);
+  }
+
+  const rootMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({opacity: 0, transparent: true}));
+  rootMesh.scale.set(1, 1, 1);
+  scene.add(rootMesh);
+
+  function makeBond(radius, startX, startY, startZ, endX, endY, endZ, granularity) {
+    const vector = new THREE.Vector3(endX - startX, endY - startY, endZ - startZ);
+    const geometry = new THREE.CylinderBufferGeometry(radius, radius, vector.length(), granularity);
+    const material = new THREE.MeshPhongMaterial({color: 0xA0A0A0, emissive: 0x202020});
+    const mesh = new THREE.Mesh(geometry, material);
+    const axis = new THREE.Vector3(0, 1, 0);
+    mesh.quaternion.setFromUnitVectors(axis, vector.clone().normalize());
+    mesh.position.x = (startX + endX) / 2
+    mesh.position.y = (startY + endY) / 2
+    mesh.position.z = (startZ + endZ) / 2
+    rootMesh.add(mesh);
+  }
+
+  function makeAtom(radius, x, y, z, granularity) {
+    const geometry = new THREE.SphereBufferGeometry(radius, granularity, granularity);
+    const material = new THREE.MeshPhongMaterial({color: 0xA0A0A0, emissive: 0x202020});
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = x
+    mesh.position.y = y
+    mesh.position.z = z
+    rootMesh.add(mesh);
+  }
+
+  makeAtom(6, -10, -8, 10, 10)
+  makeBond(3, -10, -8, 10, 20, 25, 30, 10)
+  makeAtom(6, 20, 25, 30, 10)
+
+  function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const pixelRatio = window.devicePixelRatio;
+    const width  = canvas.clientWidth  * pixelRatio | 0;
+    const height = canvas.clientHeight * pixelRatio | 0;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
+
+  function render(time) {
+    time *= 0.0005;
+
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
+
+    rootMesh.rotation.z = time;
+
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+}
+
+main();
+
+</script>
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+}
+#c {
+  width: 60%;
+  height: 95%;
+  display: block;
+}
+</style>
