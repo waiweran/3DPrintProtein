@@ -23,7 +23,7 @@ def make_space_fill(pdb_file, resolution=10):
         for atom in model.hets_atoms:
             tags = ['model_{}'.format(model.serial_number),
                     'model_{}_chain_{}'.format(model.serial_number, atom.chain_id),
-                    'element_{}'.format(atom.element), 'hets', 'atoms']
+                    'element_{}'.format(atom.element), 'het_{}'.format(atom.residue_code), 'hets', 'atoms']
             model3d.add_sphere(mol_props.get_space_size(atom.element), atom.coords, resolution, tags)
         for atom in model.mainchain_hydrogens:
             tags = ['model_{}'.format(model.serial_number),
@@ -72,17 +72,31 @@ def make_ball_stick(pdb_file, ball_size=0.4, ball_size_h=0.25, bond_width=0.2, b
         for atom in model.hets_atoms:
             tags = ['model_{}'.format(model.serial_number),
                     'model_{}_chain_{}'.format(model.serial_number, atom.chain_id),
-                    'element_{}'.format(atom.element), 'hets', 'atoms']
+                    'element_{}'.format(atom.element), 'het_{}'.format(atom.residue_code), 'hets']
             if atom.element == 'H':
+                tags.append('hydrogens')
                 model3d.add_sphere(ball_size_h, atom.coords, resolution, tags)
             else:
+                tags.append('atoms')
                 model3d.add_sphere(ball_size, atom.coords, resolution, tags)
         for connection in model.hets_connections:
             tags = ['model_{}'.format(model.serial_number),
-                    'model_{}_chain_{}'.format(model.serial_number, connection[0].chain_id), 'hets', 'atoms']
+                    'model_{}_chain_{}'.format(model.serial_number, connection[0].chain_id)]
+            if connection[0] in model.mainchain_atoms or connection[1] in model.mainchain_atoms:
+                tags.append('mainchain')
+            if connection[0] in model.sidechain_atoms or connection[1] in model.sidechain_atoms:
+                tags.append('sidechain')
+            if connection[0] in model.hets_atoms or connection[1] in model.hets_atoms:
+                tags.append('hets')
+                if connection[0] in model.hets_atoms:
+                    tags.append('het_{}'.format(connection[0].residue_code))
+                if connection[1] in model.hets_atoms:
+                    tags.append('het_{}'.format(connection[1].residue_code))
             if connection[0].element == 'H' or connection[1].element == 'H':
+                tags.append('hydrogens')
                 model3d.add_cylinder(bond_width_h, connection[0].coords, connection[1].coords, resolution, tags)
             else:
+                tags.append('atoms')
                 model3d.add_cylinder(bond_width, connection[0].coords, connection[1].coords, resolution, tags)
         for atom in model.mainchain_hydrogens:
             tags = ['model_{}'.format(model.serial_number),

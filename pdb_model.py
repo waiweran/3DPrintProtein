@@ -31,9 +31,9 @@ class PDBFile:
             self.beta_sheets.append(Sheet(line))
         # Connectivity Annotation Section
         elif key == 'SSBOND':
-            pass  # Categorize CONECT from hets_connections to sidechain_connections
+            pass  # Disulfides re-categorized in processing of hets connections
         elif key == 'LINK  ':
-            pass  # Categorize CONECT from hets_connections to mainchain/sidechain_connections
+            pass  # Bonds indicated here re-categorized in processing of hets connections
         # Coordinates Section
         elif key == 'ATOM  ':
             self.models[-1].add_atom(line)
