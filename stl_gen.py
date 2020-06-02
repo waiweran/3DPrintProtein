@@ -13,17 +13,17 @@ class Model3D:
         self.cylinders = list()
         self.data = None
 
-    def add_sphere(self, r, pos, resolution, tags):
+    def add_sphere(self, r, pos, tags):
         """Adds a sphere to the model with the given radius and position (x,y,z) coordinates.
            Granularity determines the number of faces on each ring around the sphere.
            Tags are used for filtering items in model creation."""
-        self.spheres.append(Sphere(r, pos, resolution, tags))
+        self.spheres.append(Sphere(r, pos, tags))
 
-    def add_cylinder(self, r, start, end, resolution, tags):
+    def add_cylinder(self, r, start, end, tags):
         """Adds a cylinder to the model with the given radius and start, end (x,y,z) coordinates.
            Granularity determines the number of faces on the cylinder.
            Tags are used for filtering items in model creation."""
-        self.cylinders.append(Cylinder(r, start, end, resolution, tags))
+        self.cylinders.append(Cylinder(r, start, end, tags))
 
     def center(self):
         """Centers the model around (0, 0, 0)"""
@@ -39,10 +39,15 @@ class Model3D:
             cylinder.start = tuple(np.asarray(cylinder.start) - pos_avg)
             cylinder.end = tuple(np.asarray(cylinder.end) - pos_avg)
 
-    def to_stl(self, exclude_tags=None):
+    def to_stl(self, resolution=15, sphere_resolution=None, cylinder_resolution=None, exclude_tags=None):
         """Generates spheres and cylinders for the STL based on the shapes added to the model.
            Includes only items with all include_tags, and excludes anything with any exclude_tags.
            Empty lists are ignored for both."""
+        if sphere_resolution is None:
+            sphere_resolution = resolution
+        if cylinder_resolution is None:
+            cylinder_resolution = resolution
+
         if exclude_tags is None:
             exclude_tags = []
         data = list()
@@ -53,7 +58,7 @@ class Model3D:
                     use = False
                     break
             if use:
-                data.append(_gen_sphere(sphere))
+                data.append(_gen_sphere(sphere, sphere_resolution))
         for cylinder in self.cylinders:
             use = True
             for tag in exclude_tags:
@@ -61,7 +66,7 @@ class Model3D:
                     use = False
                     break
             if use:
-                data.append(_gen_cylinder(cylinder))
+                data.append(_gen_cylinder(cylinder, cylinder_resolution))
         if data:
             self.data = _merge_shapes(data)
 
@@ -98,7 +103,7 @@ def _merge_shapes(data):
     return np.concatenate(data)
 
 
-def _gen_cylinder(cylinder):
+def _gen_cylinder(cylinder, resolution):
     """Generates a cylinder with the given radius and start, end (x,y,z) coordinates.
        Granularity determines the number of faces on the cylinder."""
     vector = np.array(cylinder.end) - np.array(cylinder.start)
@@ -110,16 +115,16 @@ def _gen_cylinder(cylinder):
 
     # Points on Circle
     count = 0
-    circle_pts = np.zeros((cylinder.resolution, 3))
-    for theta in np.linspace(0, 2*math.pi*(1 - 1/cylinder.resolution), cylinder.resolution):
+    circle_pts = np.zeros((resolution, 3))
+    for theta in np.linspace(0, 2*math.pi*(1 - 1/resolution), resolution):
         circle_pts[count, :] = radius*np.cos(theta) + np.cross(axis, radius)*np.sin(theta) + \
                               axis*np.dot(axis, radius)*(1 - np.cos(theta))
         count += 1
 
     # Cylinder Sides
     count = 0
-    coords = np.zeros((cylinder.resolution*2, 3, 3))
-    for i in range(0, cylinder.resolution - 1):
+    coords = np.zeros((resolution*2, 3, 3))
+    for i in range(0, resolution - 1):
         coords[count, :] = np.array([circle_pts[i, :] + cylinder.end,
                                      circle_pts[i, :] + cylinder.start,
                                      circle_pts[i+1, :] + cylinder.start])
@@ -127,10 +132,10 @@ def _gen_cylinder(cylinder):
                                       circle_pts[i+1, :] + cylinder.start,
                                       circle_pts[i+1, :] + cylinder.end])
         count += 2
-    coords[count, :] = np.array([circle_pts[cylinder.resolution-1, :] + cylinder.end,
-                                 circle_pts[cylinder.resolution-1, :] + cylinder.start,
+    coords[count, :] = np.array([circle_pts[resolution-1, :] + cylinder.end,
+                                 circle_pts[resolution-1, :] + cylinder.start,
                                  circle_pts[0, :] + cylinder.start])
-    coords[count+1, :] = np.array([circle_pts[cylinder.resolution-1, :] + cylinder.end,
+    coords[count+1, :] = np.array([circle_pts[resolution-1, :] + cylinder.end,
                                   circle_pts[0, :] + cylinder.start,
                                   circle_pts[0, :] + cylinder.end])
     count += 2
@@ -142,12 +147,12 @@ def _gen_cylinder(cylinder):
     return output
 
 
-def _gen_sphere(sphere):
+def _gen_sphere(sphere, resolution):
     """Generates a sphere with the given radius and position (x,y,z) coordinates.
        Granularity determines the number of faces on each ring around the sphere."""
-    coords = np.zeros((sphere.resolution*2 + 2*sphere.resolution*(sphere.resolution-3), 3, 3))
-    thetas = np.linspace(0, math.pi, sphere.resolution)
-    phis = np.linspace(0, 2*math.pi, sphere.resolution+1)
+    coords = np.zeros((resolution*2 + 2*resolution*(resolution-3), 3, 3))
+    thetas = np.linspace(0, math.pi, resolution)
+    phis = np.linspace(0, 2*math.pi, resolution+1)
     count = 0
 
     # Bottom Triangles
@@ -195,19 +200,17 @@ def _gen_sphere(sphere):
 class Sphere:
     """Represents a sphere"""
 
-    def __init__(self, radius, pos, resolution, tags):
+    def __init__(self, radius, pos, tags):
         self.radius = radius
         self.pos = pos
-        self.resolution = resolution
         self.tags = tags
 
 
 class Cylinder:
     """Represents a cylinder"""
 
-    def __init__(self, radius, start, end, resolution, tags):
+    def __init__(self, radius, start, end, tags):
         self.radius = radius
         self.start = start
         self.end = end
-        self.resolution = resolution
         self.tags = tags

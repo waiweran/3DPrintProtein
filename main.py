@@ -2,7 +2,7 @@ from pdb_model import PDBFile
 import pdb_to_stl
 
 
-def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, resolution=pdb_to_stl.DEFAULT_RESOLUTION):
+def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets):
     """Creates an STL file from the given PDB file data.
        STL file saved at the location specified by output_file
        The model_type can be 'space', 'ballstick' or 'stick' to produce a
@@ -28,16 +28,16 @@ def make_stl(pdb_input, output_file, model_type, sidechains, hydrogens, hets, re
 
     # Make and Save Model
     if model_type == 'space':
-        model = pdb_to_stl.make_space_fill(pdb_file, resolution=resolution)
+        model = pdb_to_stl.make_space_fill(pdb_file)
     elif model_type == 'ballstick':
-        model = pdb_to_stl.make_ball_stick(pdb_file, resolution=resolution)
+        model = pdb_to_stl.make_ball_stick(pdb_file)
     else:
-        model = pdb_to_stl.make_line_model(pdb_file, resolution=resolution)
+        model = pdb_to_stl.make_line_model(pdb_file)
     model.to_stl(exclude_tags=exclude_tags)
     model.save(output_file)
 
 
 if __name__ == '__main__':
-    with open('Files/6j5i.pdb') as opened_file:
+    with open('Files/4ymz.pdb') as opened_file:
         pdb_input_lines = opened_file.readlines()
-        make_stl(pdb_input_lines, 'Files/output.stl', 'space', True, False, False, resolution=15)
+        make_stl(pdb_input_lines, 'Files/output.stl', 'space', True, False, False)
