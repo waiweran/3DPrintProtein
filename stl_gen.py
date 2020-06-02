@@ -15,13 +15,11 @@ class Model3D:
 
     def add_sphere(self, r, pos, tags):
         """Adds a sphere to the model with the given radius and position (x,y,z) coordinates.
-           Granularity determines the number of faces on each ring around the sphere.
            Tags are used for filtering items in model creation."""
         self.spheres.append(Sphere(r, pos, tags))
 
     def add_cylinder(self, r, start, end, tags):
         """Adds a cylinder to the model with the given radius and start, end (x,y,z) coordinates.
-           Granularity determines the number of faces on the cylinder.
            Tags are used for filtering items in model creation."""
         self.cylinders.append(Cylinder(r, start, end, tags))
 
@@ -41,7 +39,8 @@ class Model3D:
 
     def to_stl(self, resolution=15, sphere_resolution=None, cylinder_resolution=None, exclude_tags=None):
         """Generates spheres and cylinders for the STL based on the shapes added to the model.
-           Includes only items with all include_tags, and excludes anything with any exclude_tags.
+           Resolution can be specified, or overridden separately for spheres and cylinders.
+           Excludes any items with any of the exclude_tags.
            Empty lists are ignored for both."""
         if sphere_resolution is None:
             sphere_resolution = resolution
@@ -105,7 +104,7 @@ def _merge_shapes(data):
 
 def _gen_cylinder(cylinder, resolution):
     """Generates a cylinder with the given radius and start, end (x,y,z) coordinates.
-       Granularity determines the number of faces on the cylinder."""
+       Resolution determines the number of faces on the cylinder."""
     vector = np.array(cylinder.end) - np.array(cylinder.start)
     axis = vector / np.linalg.norm(vector)
     rad_unsc = np.cross(vector, np.array([1, 1, 0]))
@@ -149,7 +148,7 @@ def _gen_cylinder(cylinder, resolution):
 
 def _gen_sphere(sphere, resolution):
     """Generates a sphere with the given radius and position (x,y,z) coordinates.
-       Granularity determines the number of faces on each ring around the sphere."""
+       Resolution determines the number of faces on each ring around the sphere."""
     coords = np.zeros((resolution*2 + 2*resolution*(resolution-3), 3, 3))
     thetas = np.linspace(0, math.pi, resolution)
     phis = np.linspace(0, 2*math.pi, resolution+1)

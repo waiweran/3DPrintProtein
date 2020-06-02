@@ -9,9 +9,7 @@ DEFAULT_BOND_WIDTH_H = 0.1
 
 def make_space_fill(pdb_file):
     """Creates STL file data from the given PDB file data.
-       Bonds are filled in as cylinders and atoms are not included.
-       resolution specifies how many faces are included in spheres and cylinders.
-       Note that currently, adding sidechain hydrogens are not supported."""
+       Atoms are filled in as spheres based on their van der waals radius."""
     model3d = Model3D()
 
     for model in pdb_file.models:
@@ -47,13 +45,11 @@ def make_space_fill(pdb_file):
 def make_ball_stick(pdb_file, atom_size=DEFAULT_ATOM_SIZE, hydrogen_size=DEFAULT_H_SIZE, bond_width=DEFAULT_BOND_WIDTH,
                     bond_width_h=DEFAULT_BOND_WIDTH_H):
     """Creates STL file data from the given PDB file data.
-       Bonds are filled in as cylinders and atoms are not included.
+       Bonds are filled in as cylinders and atoms are included as spheres.
        ball_size specifies the diameter of atoms in the model.
        ball_size_h specifies diameter of hydrogen atoms.
        bond_width specifies the diameter of bond cylinders.
-       bond_width_h specifies diameter of bonds with hydrogen.
-       resolution specifies how many faces are included in spheres and cylinders.
-       Note that currently, adding sidechain hydrogens are not supported."""
+       bond_width_h specifies diameter of bonds with hydrogen."""
     model3d = Model3D()
 
     for model in pdb_file.models:
@@ -130,8 +126,6 @@ def make_line_model(pdb_file, bond_width=DEFAULT_BOND_WIDTH, bond_width_h=DEFAUL
     """Creates STL file data from the given PDB file data.
        Bonds are filled in as cylinders and atoms are not included.
        bond_width specifies the diameter of bond cylinders.
-       bond_width_h specifies diameter of bonds with hydrogen.
-       resolution specifies how many faces are included in spheres and cylinders.
-       Note that currently, adding sidechain hydrogens are not supported."""
+       bond_width_h specifies diameter of bonds with hydrogen."""
     return make_ball_stick(pdb_file, atom_size=bond_width, hydrogen_size=bond_width_h, bond_width=bond_width,
                            bond_width_h=bond_width_h)
